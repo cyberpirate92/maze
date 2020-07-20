@@ -13,6 +13,7 @@ td {
 table {
     border-collapse: collapse;
     background-color: wheat;
+    user-select: none;
 }
 
 .mazeContainer {
