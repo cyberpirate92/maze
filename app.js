@@ -1,3 +1,39 @@
+/**
+* @typedef {Object} MatrixCell
+* @property {Number} x Row Index
+* @property {Number} y Column Index
+*/
+
+/**
+* @typedef {Object} MazeCell
+* @property {Number} left
+* @property {Number} right
+* @property {Number} top
+* @property {Number} bottom
+*/
+
+/**
+ * @typedef {Object} Neighbor
+ * @property {MatrixCell} position Cell's absolute position 
+ * @property {string} direction direction from the perspective of current cell
+ */
+
+/**
+* @type {enum}
+*/
+const WALL_TYPE = {
+    OPEN: -1,
+    PATH: 0,
+    BLOCKED: 1,
+};
+
+const DIRECTIONS = {
+    TOP: 'top',
+    BOTTOM: 'bottom',
+    LEFT: 'left',
+    RIGHT: 'right',
+};
+
 /** @type {HTMLInputElement} */
 let rowInput;
 
@@ -7,126 +43,299 @@ let colInput;
 /** @type {HTMLTableElement} */
 let maze;
 
-const DIRECTIONS = {
-    TOP: 0,
-    RIGHT: 1,
-    BOTTOM: 2,
-    LEFT: 3,
-};
-
 window.addEventListener('load', () => {
     console.log('Loaded');
     rowInput = document.querySelector('#rows');
     colInput = document.querySelector('#cols');
     maze = document.querySelector('#maze');
-
+    
     rowInput.addEventListener('input', () => {
-        updateMaze();
+        createAndRenderMaze();
     });
-
+    
     colInput.addEventListener('input', () => {
-        updateMaze();
+        createAndRenderMaze();
     });
-
-    updateMaze();
+    
+    createAndRenderMaze();
 });
 
-/** @type {Number[][][]} */
-let cells;
-
-/** @type {boolean[][]} */
-let unvis;
-
-function initialize(r, c) {
-    cells = new Array(r);
-    unvis = new Array(r);
-
-    for (let i=0; i<r; i++) {
-        cells[i] = new Array(c);
-        unvis[i] = new Array(c);
-        for (let j=0; j<c; j++) {
-
-            // top, right, bottom, left
-            cells[i][j] = [1, 1, 1, 1];
-            unvis[i][j] = true;
-        }
-    }
-}
-
-function updateMaze() {
-    let rowCount = Number(rowInput.value);
-    let colCount = Number(colInput.value);
-
-    if (rowCount <= 0 || colCount <= 0) {
-        console.log('Invalid values');
-        return;
-    }
-    
-    let totalCells = rowCount * colCount;
-    let totalVisited = 0;
-
-    initialize(rowCount, colCount);
-
-    //let currentCell = [Math.floor(Math.random() * rowCount), Math.floor(Math.random() * colCount)];
-    let currentCell = [0, 0];
-    let path = [];
-
-    while (path.length < totalCells && unvis[currentCell[0]][currentCell[1]]) {
-        /** @type {Object[]} */
-        let availableNeighbors = [];
-        let x = currentCell[0];
-        let y = currentCell[1];
-
-        unvis[x][y] = false;
-        path.push([x, y]);
-
-        if (x-1 >= 0 && unvis[x-1][y]) {
-            availableNeighbors.push({x: x-1, y, direction: DIRECTIONS.LEFT });
-        }
-
-        if (x+1 < rowCount && unvis[x+1][y]) {
-            availableNeighbors.push({x: x+1, y, direction: DIRECTIONS.RIGHT })
-        }
-
-        if (y-1 >= 0 && unvis[x][y-1]) {
-            availableNeighbors.push({x, y: y-1, direction: DIRECTIONS.TOP });
-        }
-
-        if (y+1 < colCount && unvis[x][y+1]) {
-            availableNeighbors.push({x, y: y+1, direction: DIRECTIONS.BOTTOM });
-        }
-
-        if (availableNeighbors.length > 0) {
-            let nextCell = availableNeighbors[availableNeighbors.length === 1 ? 0 : Math.floor(Math.random() * availableNeighbors.length)];
-            cells[nextCell.x][nextCell.y][nextCell.direction] = 0;
-            currentCell = [nextCell.x, nextCell.y];
-        }
-    }
-
-    console.log(path);
-    renderMaze(cells);
-}
-
 /**
- * Render maze table
- * @param {Number[][][]} cells 
- */
-function renderMaze(cells) {
+* Render maze table
+* @param {MazeCell[][]} mazeCells 
+*/
+function renderMaze(mazeCells) {
+    console.log(mazeCells);
     maze.innerHTML = '';
-    for (let i=0; i<cells.length; i++) {
+    for (let i=0; i<mazeCells.length; i++) {
+        
         let tableRow = document.createElement('tr');
-        for (let j=0; j<cells[i].length; j++) {
-            let directions = cells[i][j];
-            let tableCol = document.createElement('td');
+        
+        for (let j=0; j<mazeCells[i].length; j++) {
+    
+            let borders = 0;
+            const walls = mazeCells[i][j];
+            const tableCol = document.createElement('td');
+            
+            if (walls.top !== WALL_TYPE.BLOCKED) {
+                tableCol.style.borderTopWidth = "0px";
+                borders += 1;
+            }
 
-            let top = directions[DIRECTIONS.TOP] != 0 ? '5px' : '0px';
-            let right = directions[DIRECTIONS.RIGHT] != 0 ? '5px' : '0px';
-            let bottom = directions[DIRECTIONS.BOTTOM] != 0 ? '5px' : '0px';
-            let left = directions[DIRECTIONS.LEFT] != 0 ? '5px' : '0px';
+            if (walls.bottom !== WALL_TYPE.BLOCKED) {
+                tableCol.style.borderBottomWidth = "0px";
+                borders += 1;
+            }
 
-            tableCol.style.borderWidth = `${top} ${right} ${bottom} ${left}`;
+            if (walls.left !== WALL_TYPE.BLOCKED) {
+                tableCol.style.borderLeftWidth = "0px";
+                borders += 1;
+            }
+            
+            if (walls.right !== WALL_TYPE.BLOCKED) {
+                tableCol.style.borderRightWidth = "0px";
+                borders += 1;
+            }
+            
+            tableCol.textContent = `(${i},${j})`;
+            
+            if (borders === 0) {
+                tableCol.classList.add('blocked');
+            }
+
             tableRow.appendChild(tableCol);
         }
         maze.appendChild(tableRow);
     }   
 }
+
+function toggleText() {
+    document.querySelector('#maze').classList.toggle('no-text');
+}
+
+function createAndRenderMaze() {
+    let mazeObj = Maze();
+    const rows = Number(rowInput.value);
+    const cols = Number(colInput.value);
+    const mazeData = mazeObj.generate(rows, cols);
+    renderMaze(mazeData);
+}
+
+const Maze = () => {
+
+    /** @type {MazeCell[][]} */
+    let mazeCells;
+    
+    /** @type {boolean[][]} */
+    let visited;
+    
+    /**
+     * Initialize matrix and visited arrays
+     * @param {Number} r 
+     * @param {Number} c 
+     */
+    function initialize(r, c) {
+        console.log('# Rows', r);
+        console.log('# Cols', c);
+        
+        mazeCells = new Array(r);
+        visited = new Array(r);
+        
+        for (let i=0; i<r; i++) {
+            mazeCells[i] = new Array(c);
+            visited[i] = new Array(c);
+            for (let j=0; j<c; j++) {
+                mazeCells[i][j] = {
+                    left: WALL_TYPE.OPEN,
+                    right: WALL_TYPE.OPEN,
+                    top: WALL_TYPE.OPEN,
+                    bottom: WALL_TYPE.OPEN,
+                };
+                visited[i][j] = false;
+            }
+        }
+    }
+
+    /**
+     * Get next unvisited cell
+     * 
+     * @returns {MatrixCell}
+     */
+    function getNextUnvisitedCell() {
+        for (let i=0; i<mazeCells.length; i++) {
+            for (let j=0; j<mazeCells[i].length; j++) {
+                if (!visited[i][j]) {
+                    return {
+                        x: i,
+                        y: j,
+                    };
+                }
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Generate Maze
+     * @param {Number} rowCount 
+     * @param {Number} colCount 
+     * 
+     * @returns {MazeCell[][]} The 3D matrix representing the maze
+     */
+    function generate(rowCount, colCount) {
+        if (rowCount <= 3 || colCount <= 3) {
+            console.log('Invalid values');
+            return;
+        }
+        
+        initialize(rowCount, colCount);
+        
+        /** @type {MatrixCell} */
+        let currentCell = {
+            x: Math.floor(Math.random() * rowCount),
+            y:  Math.floor(Math.random() * colCount),
+        };
+
+        // let currentCell = {
+        //     x: 0,
+        //     y: 0,
+        // }
+        
+        /** @type {MatrixCell[]} */
+        let path = [];
+        
+        let totalCells = rowCount * colCount;
+        let totalVisited = 0;
+        
+        while (totalVisited < totalCells) {
+            let availableNeighbors = getAccessibleNeighbors(currentCell.x, currentCell.y);
+            if (availableNeighbors.length === 0) {
+                currentCell = path.pop();
+                console.log('No available neighbors');
+                visited[currentCell.x][currentCell.y] = true;
+                createWalls(currentCell.x, currentCell.y);
+                console.log('Taking a step back to ', currentCell);
+                continue;
+            }
+
+            let nextCell = availableNeighbors[availableNeighbors.length === 1 ? 0 : Math.floor(Math.random() * availableNeighbors.length)];
+            switch (nextCell.direction) {
+                case DIRECTIONS.TOP:
+                    mazeCells[currentCell.x][currentCell.y].top = WALL_TYPE.PATH;
+                    mazeCells[nextCell.position.x][nextCell.position.y].bottom = WALL_TYPE.PATH;
+                    break;
+                case DIRECTIONS.BOTTOM:
+                    mazeCells[currentCell.x][currentCell.y].bottom = WALL_TYPE.PATH;
+                    mazeCells[nextCell.position.x][nextCell.position.y].top = WALL_TYPE.PATH;
+                    break;
+                case DIRECTIONS.LEFT:
+                    mazeCells[currentCell.x][currentCell.y].left = WALL_TYPE.PATH;
+                    mazeCells[nextCell.position.x][nextCell.position.y].right = WALL_TYPE.PATH;
+                    break;
+                case DIRECTIONS.RIGHT:
+                    mazeCells[currentCell.x][currentCell.y].right = WALL_TYPE.PATH;
+                    mazeCells[nextCell.position.x][nextCell.position.y].left = WALL_TYPE.PATH;
+                    break;
+                default:
+                    console.warn('Unknown Direction');
+            }
+
+            createWalls(currentCell.x, currentCell.y);
+
+            path.push({
+                x: currentCell.x,
+                y: currentCell.y,
+            });
+
+            visited[currentCell.x][currentCell.y] = true;
+            totalVisited += 1;
+
+            currentCell = {
+                x: nextCell.position.x,
+                y: nextCell.position.y,
+            };
+        }
+
+        for (let i=0; i<mazeCells.length; i++) {
+            for (let j=0; j<mazeCells[i].length; j++) {
+                if (!visited[i][j]) {
+                    createWalls(i, j);
+                }
+            }
+        }
+        
+        console.log(path);
+        return mazeCells;
+    }
+
+    /**
+     * 
+     * @param {Number} x 
+     * @param {Number} y 
+     */
+    function createWalls(x, y) {
+        Object.keys(mazeCells[x][y]).forEach(key => {
+            if (mazeCells[x][y][key] === WALL_TYPE.OPEN) {
+                mazeCells[x][y][key] = WALL_TYPE.BLOCKED;
+            }
+        });
+    }
+
+    /**
+     * Get all accessible neighbors
+     * @param {Number} x 
+     * @param {Number} y
+     * 
+     * @returns {Neighbor[]} Accessible neighbors from position (x, y)
+     */
+    function getAccessibleNeighbors(x, y) {
+        /** @type {Neighbor[]} */
+        let list = [];
+        
+        if (x - 1 >= 0 && mazeCells[x-1][y].bottom === WALL_TYPE.OPEN) {
+            list.push({
+                position: {
+                    x: x-1,
+                    y
+                },
+                direction: DIRECTIONS.TOP,
+            });
+        }
+
+        if (x + 1 < mazeCells.length && mazeCells[x+1][y].top === WALL_TYPE.OPEN) {
+            list.push({
+                position: {
+                    x: x + 1,
+                    y
+                },
+                direction: DIRECTIONS.BOTTOM,
+            });
+        }
+
+        if (y - 1 >= 0 && mazeCells[x][y-1].right === WALL_TYPE.OPEN) {
+            list.push({
+                position: {
+                    x,
+                    y: y - 1,
+                },
+                direction: DIRECTIONS.LEFT,
+            });
+        }
+
+        if (y + 1 < mazeCells[x].length && mazeCells[x][y+1].left === WALL_TYPE.OPEN) {
+            list.push({
+                position: {
+                    x,
+                    y: y + 1,
+                },
+                direction: DIRECTIONS.RIGHT,
+            });
+        }
+
+        return list.filter(p => !visited[p.position.x][p.position.y]);
+    }
+
+    return {
+        generate
+    };
+};

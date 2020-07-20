@@ -4,18 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Maze Generator</title>
+    <link href="./style.css" rel="stylesheet" />
     <script src="./app.js"></script>
 </head>
 <body>
     <h3>Maze Generator</h3>
     <label>Rows</label>
     <div>
-        <input type="range" min="0" max="50" value="4" id="rows"/>
+        <input type="range" min="3" max="50" value="6" id="rows"/>
     </div>
     <p></p>
     <label>Cols</label>
     <div>
-        <input type="range" min="0" max="50" value="4" id="cols" />
+        <input type="range" min="3" max="50" value="10" id="cols" />
     </div>
     <div class="mazeContainer">
         <table id="maze">

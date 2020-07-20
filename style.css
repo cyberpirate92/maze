@@ -1,0 +1,34 @@
+td {
+    width: 75px;
+    height: 75px;
+    border-style: solid;
+    border-color: #000;
+    border-width: 10px;
+    font-size: 1rem;
+    text-align: center;
+    font-family: monospace;
+    font-weight: bold;
+}
+
+table {
+    border-collapse: collapse;
+    background-color: wheat;
+}
+
+.mazeContainer {
+    margin-top: 1rem;
+    display: inline-block;
+}
+
+.blocked {
+    /* background-color: #000;
+    color: #fff; */
+}
+
+table.no-text .blocked {
+    color: transparent;
+}
+
+.no-text {
+    color: transparent;
+}
