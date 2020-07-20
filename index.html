@@ -9,14 +9,20 @@
 </head>
 <body>
     <h3>Maze Generator</h3>
+    <div>
     <label>Rows</label>
     <div>
-        <input type="range" min="3" max="50" value="6" id="rows"/>
+        <input type="range" min="3" max="50" value="12" id="rows"/>
     </div>
-    <p></p>
+    </div>
+    <div>
     <label>Cols</label>
     <div>
-        <input type="range" min="3" max="50" value="10" id="cols" />
+        <input type="range" min="3" max="50" value="12" id="cols" />
+    </div>
+    </div>
+    <div>
+        <button onclick="createAndRenderMaze()">Refresh</button>
     </div>
     <div class="mazeContainer">
         <table id="maze" class="no-text">
